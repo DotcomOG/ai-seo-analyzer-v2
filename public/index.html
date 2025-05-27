@@ -54,7 +54,7 @@
   <div id="main">
     <h1>AI SEO Readiness Summary</h1>
     <div id="readiness">Loading...</div>
-    <div class="contact-form">
+    <form id="analyzeForm" class="contact-form">
       <p>Want to dig deeper? Fill out the form to get a full report.</p>
       <label for="nameInput">Name:</label>
       <input id="nameInput" type="text" required />
@@ -62,8 +62,11 @@
       <input id="emailInput" type="email" required />
       <label for="companyInput">Company/Organization:</label>
       <input id="companyInput" type="text" required />
-      <button id="reportBtn">Get Full Report</button>
-    </div>
+      <label for="commentInput">Additional Comments:</label>
+      <input id="commentInput" type="text" />
+      <button id="reportBtn" type="submit">Get Full Report</button>
+    </form>
+    <div id="thankYou" style="display:none; margin-top:1rem;">Thank you! Redirecting…</div>
   </div>
 
   <script src="./index.js"></script>
