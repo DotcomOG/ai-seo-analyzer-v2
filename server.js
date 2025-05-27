@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cors    = require('cors');
 const axios   = require('axios');
+const { URL } = require('url');
 const { Configuration, OpenAIApi } = require('openai');
 
 const app = express();
@@ -28,6 +29,24 @@ app.post('/contact', (req, res) => {
 });
 
 // Friendly summary endpoint
+function isSafeUrl(str) {
+  try {
+    const u = new URL(str);
+    if (!['http:', 'https:'].includes(u.protocol)) {
+      return false;
+    }
+    const host = u.hostname;
+    return !/^localhost$/.test(host) &&
+           !/^127\./.test(host) &&
+           !/^0\.0\.0\.0$/.test(host) &&
+           !/^10\./.test(host) &&
+           !/^192\.168\./.test(host) &&
+           !/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host);
+  } catch (_) {
+    return false;
+  }
+}
+
 app.get('/friendly', async (req, res) => {
   const { type, url } = req.query;
   if (type !== 'summary') {
@@ -35,6 +54,9 @@ app.get('/friendly', async (req, res) => {
   }
   if (!url) {
     return res.status(400).json({ error: 'Missing "url" parameter.' });
+  }
+  if (!isSafeUrl(url)) {
+    return res.status(400).json({ error: 'Invalid or unsafe URL.' });
   }
 
   try {
@@ -44,10 +66,10 @@ app.get('/friendly', async (req, res) => {
     const completion = await openai.createChatCompletion({
       model: 'gpt-3.5-turbo',
       messages: [
-        { role: 'system', content: 'You are an expert SEO assistant.' },
+        { role: 'system', content: 'You are an expert SEO assistant. Respond only with valid JSON.' },
         {
           role: 'user',
-          content: `Please provide a concise, SEO-friendly summary of the following HTML:\n\n${htmlContent}`,
+          content: `Provide a concise, SEO-friendly summary of the following HTML. Reply in JSON with keys: score, ai_superpowers, ai_opportunities, ai_engine_insights.\n\n${htmlContent}`,
         },
       ],
       temperature: 0.7,
