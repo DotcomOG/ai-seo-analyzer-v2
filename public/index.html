@@ -1,40 +1,93 @@
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AI SEO Analyzer</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; max-width: 800px; margin: auto; }
-    label, input, textarea, button, select { display: block; width: 100%; margin-bottom: 1rem; }
-    button { padding: 0.5rem; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    .lightbox {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .box {
+      background: #111;
+      padding: 2rem;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    .box h1 {
+      color: #fff;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+    .box input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    .box button {
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 4px;
+      background: #28a745;
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .box button:active {
+      background: #1e7e34;
+    }
   </style>
 </head>
 <body>
-  <h1>AI SEO Analyzer</h1>
-  <form id="analyzeForm">
-    <label for="nameInput">Name:</label>
-    <input id="nameInput" type="text" placeholder="Your Name" required />
-
-    <label for="emailInput">Email:</label>
-    <input id="emailInput" type="email" placeholder="you@example.com" required />
-
-    <label for="companyInput">Company/Organization:</label>
-    <input id="companyInput" type="text" placeholder="Company or Org" required />
-
-    <label for="urlInput">URL to analyze:</label>
-    <input id="urlInput" type="text" placeholder="example.com or https://example.com" required />
-
-    <label for="commentInput">Comment:</label>
-    <textarea id="commentInput" placeholder="Your comment"></textarea>
-
-    <button type="submit">Analyze & Submit</button>
-  </form>
-
-  <div id="thankYou" style="display:none; margin-top:2rem; padding:1rem; background:#e0ffe0; border-radius:4px;">
-    Thank you! We’ve received your request and will reach out to you shortly to schedule an appointment.
+  <div class="lightbox">
+    <div class="box">
+      <h1>Enter URL to Analyze</h1>
+      <input id="urlInput" type="text" placeholder="https://example.com" />
+      <button id="goBtn">Analyze</button>
+    </div>
   </div>
 
-  <script src="./index.js"></script>
+  <script>
+    const urlInput = document.getElementById('urlInput');
+    const goBtn = document.getElementById('goBtn');
+
+    goBtn.addEventListener('click', () => {
+      let url = urlInput.value.trim();
+      if (!url) return;
+      if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+      }
+      window.location.href = `summary.html?url=${encodeURIComponent(url)}`;
+    });
+
+    urlInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        goBtn.click();
+      }
+    });
+  </script>
 </body>
 </html>
