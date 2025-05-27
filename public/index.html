@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI SEO Analyzer</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; max-width: 800px; margin: auto; }
+    label, input, textarea, button, select { display: block; width: 100%; margin-bottom: 1rem; }
+    button { padding: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>AI SEO Analyzer</h1>
+  <form id="analyzeForm">
+    <label for="nameInput">Name:</label>
+    <input id="nameInput" type="text" placeholder="Your Name" required />
+
+    <label for="emailInput">Email:</label>
+    <input id="emailInput" type="email" placeholder="you@example.com" required />
+
+    <label for="companyInput">Company/Organization:</label>
+    <input id="companyInput" type="text" placeholder="Company or Org" required />
+
+    <label for="urlInput">URL to analyze:</label>
+    <input id="urlInput" type="text" placeholder="example.com or https://example.com" required />
+
+    <label for="commentInput">Comment:</label>
+    <textarea id="commentInput" placeholder="Your comment"></textarea>
+
+    <button type="submit">Analyze & Submit</button>
+  </form>
+
+  <div id="thankYou" style="display:none; margin-top:2rem; padding:1rem; background:#e0ffe0; border-radius:4px;">
+    Thank you! We’ve received your request and will reach out to you shortly to schedule an appointment.
+  </div>
+
+  <script src="./index.js"></script>
+</body>
+</html>
