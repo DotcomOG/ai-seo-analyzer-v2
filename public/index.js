@@ -1,42 +1,52 @@
-// public/index.js
+// index.js - Generated on 2025-05-27 10:45 AM ET
+
 document.addEventListener('DOMContentLoaded', () => {
-  const form      = document.getElementById('analyzeForm');
-  const thankYou  = document.getElementById('thankYou');
+  const params = new URLSearchParams(window.location.search);
+  let url = params.get('url');
+  const lightbox = document.getElementById('lightbox');
+  const main = document.getElementById('main');
 
-  form.addEventListener('submit', async e => {
+  if (url) {
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    lightbox.style.display = 'none';
+    main.style.display = 'block';
+    fetch(`/friendly?type=summary&url=${encodeURIComponent(url)}`)
+      .then(r => r.json())
+      .then(data => renderReadiness(data))
+      .catch(err => {
+        document.getElementById('readiness').textContent = 'Error: ' + err;
+      });
+  }
+
+  document.getElementById('lightboxBtn').addEventListener('click', () => {
+    let entered = document.getElementById('lightboxInput').value.trim();
+    if (!entered) return;
+    if (!/^https?:\/\//i.test(entered)) entered = 'https://' + entered;
+    window.location.search = '?url=' + encodeURIComponent(entered);
+  });
+
+  document.getElementById('contactForm').addEventListener('submit', e => {
     e.preventDefault();
-
-    // Gather inputs
-    let url     = document.getElementById('urlInput').value.trim();
-    const name    = document.getElementById('nameInput').value.trim();
-    const email   = document.getElementById('emailInput').value.trim();
+    const name = document.getElementById('nameInput').value.trim();
+    const email = document.getElementById('emailInput').value.trim();
     const company = document.getElementById('companyInput').value.trim();
     const comment = document.getElementById('commentInput').value.trim();
-
-    // Normalize URL
-    if (!/^https?:\/\//i.test(url)) {
-      url = 'https://' + url;
-    }
-
-    // Send contact data
-    try {
-      await fetch('/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, company, url, comment }),
-      });
-    } catch (err) {
-      console.error('Contact submission failed:', err);
-      // Continue anyway
-    }
-
-    // Show thank-you
-    thankYou.style.display = 'block';
-
-    // Redirect to full-report with all data
-    const params = new URLSearchParams({ name, email, company, url, comment });
-    setTimeout(() => {
-      window.location.href = `full-report.html?${params.toString()}`;
-    }, 2000); // give user a moment to see thank-you
+    if (!name || !email || !company) return;
+    const q = new URLSearchParams({ url, name, email, company, comment });
+    window.location.href = 'full-report.html?' + q.toString();
   });
 });
+
+function renderReadiness(d) {
+  const div = document.getElementById('readiness');
+  if (d.ai_engine_insights) {
+    let html = '';
+    const chat = d.ai_engine_insights.ChatGPT || d.ai_engine_insights.chatgpt;
+    if (chat) html += `<div class="insight"><h2>ChatGPT</h2><p>${chat.insight}</p><p>Score: ${chat.score}</p></div>`;
+    const gem = d.ai_engine_insights.Gemini || d.ai_engine_insights.gemini;
+    if (gem) html += `<div class="insight"><h2>Gemini</h2><p>${gem.insight}</p><p>Score: ${gem.score}</p></div>`;
+    div.innerHTML = html;
+  } else {
+    div.textContent = 'No readiness data';
+  }
+}

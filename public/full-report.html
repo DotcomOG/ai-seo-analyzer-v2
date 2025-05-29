@@ -1,39 +1,26 @@
-<!-- Generated on 2025-05-27 10:00 AM ET -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AI SEO Full Report</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Full AI SEO Report</title>
   <style>
-    body { font-family: sans-serif; padding:2rem; max-width:800px; margin:auto; }
-    .meta { background:#f0f0f0; padding:1rem; border-radius:4px; }
-    h2 { margin-top:1.5rem; }
-    ul { margin-left:1.5rem; }
-    label, input, select, button { display:block; width:100%; margin-bottom:1rem; }
-    button { padding:0.5rem; }
+    body{font-family:sans-serif;padding:2rem;max-width:800px;margin:auto;}
+    #metadata{background:#f0f0f0;padding:1rem;border-radius:4px;margin-bottom:2rem;}
+    label{display:block;margin-bottom:0.5rem;}
+    input{width:100%;padding:0.5rem;margin-bottom:1rem;}
+    #report ul{margin-left:1.5rem;}
   </style>
 </head>
 <body>
   <h1>AI SEO Analysis</h1>
-  <div id="meta" class="meta">Loading metadata…</div>
-  <div id="thankYou" style="margin:1rem 0; padding:1rem; background:#e0ffe0; border-radius:4px;"></div>
-  <div id="report">Fetching analysis…</div>
-
-  <h2>Schedule a Call</h2>
-  <label for="phoneInput">Phone Number:</label>
-  <input id="phoneInput" type="tel" placeholder="e.g. (555) 123-4567" />
-
-  <label for="timeSelect">Best Time to Call:</label>
-  <select id="timeSelect">
-    <option>9 AM-12 PM</option>
-    <option>12 PM-3 PM</option>
-    <option>3 PM-6 PM</option>
-    <option>6 PM-9 PM</option>
-  </select>
-
-  <button id="scheduleBtn">Request Call</button>
-
-  <script src="./full-report.js"></script>
+  <div id="metadata"></div>
+  <div id="report">Loading...</div>
+  <div id="callSection">
+    <label>Phone:<input id="phoneInput" type="tel"></label>
+    <label>Best Time to Call:<input id="timeInput" type="text"></label>
+    <a id="callLink" href="#">Request Call</a>
+  </div>
+  <script src="full-report.js"></script>
 </body>
 </html>

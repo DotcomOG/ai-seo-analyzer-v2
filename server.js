@@ -1,5 +1,10 @@
-// 2025-05-28 15:50 ET
-require("dotenv").config();
+// 2025-05-28 15:55 ET
+try {
+  require("dotenv").config();
+} catch (e) {
+  console.warn("dotenv not installed, skipping .env load");
+}
+
 const express = require("express");
 const OpenAI = require("openai");
 
@@ -14,6 +19,12 @@ app.use(express.json());
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
+});
+
+// Contact form submissions endpoint
+app.post("/contact", (req, res) => {
+  console.log("Contact submission:", req.body);
+  res.status(200).json({ status: "received" });
 });
 
 // AI SEO analysis endpoint
