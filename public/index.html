@@ -1,39 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI SEO Analyzer</title>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SnipeRank – AI SEO Analizer</title>
   <style>
-    html,body{margin:0;padding:0;height:100%;font-family:sans-serif;}
-    #lightbox{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;z-index:10;}
-    #lightbox input{padding:0.5rem;width:70%;max-width:400px;margin-right:0.5rem;}
-    #lightbox button{padding:0.5rem 1rem;}
-    #main{display:none;padding:2rem;max-width:800px;margin:auto;}
-    #readiness{margin-bottom:2rem;}
-    label{display:block;margin-bottom:0.5rem;}
-    input{width:100%;padding:0.5rem;margin-bottom:1rem;}
-    button{padding:0.5rem 1rem;}
+    html, body { margin:0; padding:0; height:100%; font-family:sans-serif; }
+    #lightbox {
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:#000; display:flex; align-items:center; justify-content:center; z-index:10;
+    }
+    #lightbox .box {
+      background:#111; padding:2rem; border-radius:8px; width:90%; max-width:500px; text-align:center;
+    }
+    #lightbox h1 { color:#fff; margin-bottom:1rem; }
+    #lightbox input {
+      width:100%; padding:.75rem; margin-bottom:1rem; border:none; border-radius:4px; font-size:1rem;
+    }
+    #lightbox button {
+      width:100%; padding:.75rem; border:none; border-radius:4px; background:#28a745; color:#fff; font-size:1rem; cursor:pointer;
+    }
+    #main { display:none; padding:2rem; max-width:800px; margin:auto; }
+    .insight {
+      background:#f4f4f4; padding:1rem; border-radius:4px; margin-bottom:1rem;
+    }
+    .contact-form { margin-top:2rem; }
+    .contact-form label, .contact-form input {
+      display:block; width:100%; margin-bottom:.5rem;
+    }
+    .contact-form button {
+      padding:.75rem; border:none; border-radius:4px; background:#0070f3; color:#fff; cursor:pointer;
+    }
   </style>
 </head>
 <body>
   <div id="lightbox">
-    <div>
-      <input id="lightboxInput" type="text" placeholder="Enter URL" />
-      <button id="lightboxBtn">Analyze</button>
+    <div class="box">
+      <h1>Enter URL to Analyze</h1>
+      <input id="urlInput" type="text" placeholder="https://example.com" />
+      <button id="goBtn">Analyze</button>
     </div>
   </div>
+
   <div id="main">
     <h1>AI SEO Readiness Summary</h1>
-    <div id="readiness"></div>
-    <form id="contactForm">
-      <label>Name:<input id="nameInput" type="text" required></label>
-      <label>Email:<input id="emailInput" type="email" required></label>
-      <label>Company:<input id="companyInput" type="text" required></label>
-      <label>Comment:<input id="commentInput" type="text"></label>
-      <button type="submit">Get Full Report</button>
-    </form>
+    <div id="readiness">Loading...</div>
+    <div class="contact-form">
+      <p>Want to dig deeper? Fill out the form to get a full report.</p>
+      <label for="nameInput">Name:</label>
+      <input id="nameInput" type="text" required />
+      <label for="emailInput">Email:</label>
+      <input id="emailInput" type="email" required />
+      <label for="companyInput">Company/Organization:</label>
+      <input id="companyInput" type="text" required />
+      <button id="reportBtn">Get Full Report</button>
+    </div>
   </div>
-  <script src="index.js"></script>
+
+  <script src="./index.js"></script>
 </body>
 </html>
