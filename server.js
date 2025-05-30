@@ -1,6 +1,7 @@
 // server.js
 // Generated on 2025-05-27 13:00 PM ET
 require('dotenv').config();
+const path    = require('path');
 const express = require('express');
 const cors    = require('cors');
 const axios   = require('axios');
@@ -10,6 +11,7 @@ const { upsertFile } = require('./github');
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -51,7 +53,7 @@ app.get('/friendly', async (req, res) => {
 
 // Contact form receiver
 app.post('/contact', (req, res) => {
-  console.log('🌟 Contact submission:', req.body);
+  console.log('Contact submission:', req.body);
   res.json({ success: true });
 });
 
