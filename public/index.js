@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Normalize URL helper
   function normalize(u) {
     u = u.trim();
-    if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+    if (!/^https?:\\/\\//i.test(u)) u = 'https://' + u;
     return u;
   }
 
