@@ -21,37 +21,59 @@ document.addEventListener('DOMContentLoaded', () => {
     return u;
   }
 
-  // Fetch and render readiness panels
+  // Fetch and render readiness panels + overall score + top-5 engines
   function fetchReady(url) {
     readiness.textContent = 'Loading...';
+
     fetch(`${BACKEND_URL}/friendly?type=summary&url=${encodeURIComponent(url)}`)
-      .then(r => {
-        if (!r.ok) throw new Error(`Status ${r.status}: ${r.statusText}`);
-        return r.json();
+      .then(response => {
+        if (!response.ok) throw new Error(`Status ${response.status}: ${response.statusText}`);
+        return response.json();
       })
       .then(data => {
+        // 1. Overall Score
+        let html = `<h2>Overall Score: ${data.score ?? 'N/A'}</h2>`;
+
+        // 2. ChatGPT & Gemini (focus on two-to-three lines each)
         const insights = data.ai_engine_insights || {};
         const chatKey  = Object.keys(insights).find(k => /chatgpt/i.test(k));
         const gemKey   = Object.keys(insights).find(k => /gemini/i.test(k));
-        let html = '';
 
         if (chatKey) {
           const c = insights[chatKey];
-          html += `<div class="insight">
-                     <h2>ChatGPT Readiness</h2>
-                     <p><strong>Score:</strong> ${c.score}</p>
-                     <p>${c.insight}</p>
-                   </div>`;
+          html += `
+            <div class="insight">
+              <h3>ChatGPT Readiness</h3>
+              <p><strong>Score:</strong> ${c.score}</p>
+              <p>${c.insight}</p>
+            </div>
+          `;
         }
         if (gemKey) {
           const g = insights[gemKey];
-          html += `<div class="insight">
-                     <h2>Gemini Readiness</h2>
-                     <p><strong>Score:</strong> ${g.score}</p>
-                     <p>${g.insight}</p>
-                   </div>`;
+          html += `
+            <div class="insight">
+              <h3>Gemini Readiness</h3>
+              <p><strong>Score:</strong> ${g.score}</p>
+              <p>${g.insight}</p>
+            </div>
+          `;
         }
-        readiness.innerHTML = html || '<p>No ChatGPT or Gemini insights available.</p>';
+
+        // 3. Top 5 AI Search Engines & analysis (score + impact-only insight)
+        const entries = Object.entries(insights);
+        html += `<h2>Top 5 AI Search Engine Analysis</h2><ul>`;
+        entries.slice(0, 5).forEach(([engineName, info]) => {
+          html += `
+            <li>
+              <strong>${engineName} — Score: ${info.score}</strong>
+              <p>${info.insight}</p>
+            </li>
+          `;
+        });
+        html += `</ul>`;
+
+        readiness.innerHTML = html;
       })
       .catch(err => {
         readiness.textContent = `Error: ${err.message || err}`;
@@ -59,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // Check URL parameter on load
+  // On page load, check if URL query param exists
   const params = new URLSearchParams(window.location.search);
   let url = params.get('url') || '';
   if (url) {
@@ -69,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchReady(url);
   }
 
-  // Lightbox submission handler
+  // Lightbox submission: reload with URL param
   goBtn.addEventListener('click', () => {
     const input = normalize(urlInput.value);
     if (!input) return;
@@ -82,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Contact form “Get Full Report” redirect
+  // Contact form “Get Full Report” redirect to full-report.html
   reportBtn.addEventListener('click', () => {
     const name    = document.getElementById('nameInput').value.trim();
     const email   = document.getElementById('emailInput').value.trim();
