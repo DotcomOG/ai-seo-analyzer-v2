@@ -1,31 +1,37 @@
 // public/index.js
-// Generated on 2025-05-27 13:00 PM ET
+// Generated on 2025-05-27 16:10 PM ET
 
 document.addEventListener('DOMContentLoaded', () => {
-  const lightbox    = document.getElementById('lightbox');
-  const main        = document.getElementById('main');
-  const urlInput    = document.getElementById('urlInput');
-  const goBtn       = document.getElementById('goBtn');
-  const readiness   = document.getElementById('readiness');
-  const reportBtn   = document.getElementById('reportBtn');
+  const lightbox  = document.getElementById('lightbox');
+  const main      = document.getElementById('main');
+  const urlInput  = document.getElementById('urlInput');
+  const goBtn     = document.getElementById('goBtn');
+  const readiness = document.getElementById('readiness');
+  const reportBtn = document.getElementById('reportBtn');
 
-  // Normalize URL helper
+  // Normalize any input URL by prepending https:// if missing
   function normalize(u) {
     u = u.trim();
-    if (!/^https?:\\/\\//i.test(u)) u = 'https://' + u;
+    if (!/^https?:\/\//i.test(u)) {
+      u = 'https://' + u;
+    }
     return u;
   }
 
-  // Fetch and render readiness
+  // Fetch and render readiness panels
   function fetchReady(url) {
     readiness.textContent = 'Loading...';
     fetch(`/friendly?type=summary&url=${encodeURIComponent(url)}`)
-      .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+      .then(r => {
+        if (!r.ok) throw new Error(r.statusText);
+        return r.json();
+      })
       .then(data => {
         const insights = data.ai_engine_insights || {};
         const chatKey  = Object.keys(insights).find(k => /chatgpt/i.test(k));
         const gemKey   = Object.keys(insights).find(k => /gemini/i.test(k));
         let html = '';
+
         if (chatKey) {
           const c = insights[chatKey];
           html += `<div class="insight">
@@ -45,12 +51,12 @@ document.addEventListener('DOMContentLoaded', () => {
         readiness.innerHTML = html || '<p>No ChatGPT or Gemini insights available.</p>';
       })
       .catch(err => {
-        readiness.textContent = `Error: ${err}`;
+        readiness.textContent = `Error: ${err.message || err}`;
         console.error(err);
       });
   }
 
-  // Entry point
+  // Check URL parameter on load
   const params = new URLSearchParams(window.location.search);
   let url = params.get('url') || '';
   if (url) {
@@ -60,11 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchReady(url);
   }
 
-  // Lightbox submit
+  // Lightbox submission handler
   goBtn.addEventListener('click', () => {
-    const u = normalize(urlInput.value);
-    if (!u) return;
-    window.location.href = `index.html?url=${encodeURIComponent(u)}`;
+    const input = normalize(urlInput.value);
+    if (!input) return;
+    window.location.href = `index.html?url=${encodeURIComponent(input)}`;
   });
   urlInput.addEventListener('keypress', e => {
     if (e.key === 'Enter') {
@@ -73,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Contact form submit
+  // Contact form “Get Full Report” redirect
   reportBtn.addEventListener('click', () => {
     const name    = document.getElementById('nameInput').value.trim();
     const email   = document.getElementById('emailInput').value.trim();
