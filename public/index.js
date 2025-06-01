@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const readiness = document.getElementById('readiness');
   const reportBtn = document.getElementById('reportBtn');
 
+  // Replace this with your actual Railway backend URL:
+  const BACKEND_URL = 'https://ai-seo-analyzer-v2-production.up.railway.app/';
+
   // Normalize any input URL by prepending https:// if missing
   function normalize(u) {
     u = u.trim();
@@ -21,9 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fetch and render readiness panels
   function fetchReady(url) {
     readiness.textContent = 'Loading...';
-    fetch(`/friendly?type=summary&url=${encodeURIComponent(url)}`)
+    fetch(`${BACKEND_URL}/friendly?type=summary&url=${encodeURIComponent(url)}`)
       .then(r => {
-        if (!r.ok) throw new Error(r.statusText);
+        if (!r.ok) throw new Error(`Status ${r.status}: ${r.statusText}`);
         return r.json();
       })
       .then(data => {
