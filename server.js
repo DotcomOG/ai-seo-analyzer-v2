@@ -1,8 +1,9 @@
 // server.js
-// Generated on 2025-05-27 15:15 PM ET
+// Generated on 2025-05-27 16:00 PM ET
 require('dotenv').config();
 const express = require('express');
 const cors    = require('cors');
+const path    = require('path');
 const axios   = require('axios');
 const OpenAI  = require('openai');
 const { extractGroundTruth } = require('./groundTruth');
@@ -11,75 +12,44 @@ const { upsertFile } = require('./github');
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Health check
 app.get('/health', (_req, res) => {
   res.json({ status: 'OK' });
 });
 
-// Validate LLM claims against groundTruth
-function validateLLMClaims(groundTruth, aiSuperpowers, aiOpportunities) {
-  const errors = [];
-
-  // Example: HTTPS superpower must match groundTruth.usesHTTPS
-  if (aiSuperpowers.some(sp => sp.title === "Secure HTTPS") && !groundTruth.usesHTTPS) {
-    errors.push("Claimed Secure HTTPS, but page did not load over HTTPS.");
-  }
-  if (aiOpportunities.some(op => op.title === "Missing Meta Description") && groundTruth.hasMetaDescription) {
-    errors.push("Claimed Missing Meta Description, but meta description exists.");
-  }
-  // Check H1 superpower/opportunity
-  aiSuperpowers.forEach(sp => {
-    if (/h1/i.test(sp.title) && !groundTruth.hasH1) {
-      errors.push(`Claimed H1 exists (“${sp.title}”), but groundTruth.hasH1 is false.`);
-    }
-  });
-  aiOpportunities.forEach(op => {
-    if (/no structured data/i.test(op.title) && groundTruth.hasJSONLD) {
-      errors.push("Claimed No Structured Data, but JSON-LD is present.");
-    }
-  });
-
-  // (Add more checks as needed for each field in groundTruth)
-  return errors;
-}
-
 app.get('/friendly', async (req, res) => {
   const { type, url } = req.query;
   if (type !== 'summary') {
-    return res.status(400).json({ error: 'Invalid type: must be "summary".' });
+    return res.status(400).json({ error: 'Invalid type; expected "summary".' });
   }
   if (!url) {
     return res.status(400).json({ error: 'Missing "url" parameter.' });
   }
 
   try {
-    // 1. Fetch page HTML
     const pageResp = await axios.get(url);
     const htmlContent = pageResp.data;
 
-    // 2. Build groundTruth from HTML + robots.txt / sitemap checks
-    //    Check robots.txt:
-    let hasRobots = false;
+    let hasRobotsTxt = false;
     try {
       await axios.head(`${new URL(url).origin}/robots.txt`);
-      hasRobots = true;
+      hasRobotsTxt = true;
     } catch {}
-    //    Check sitemap.xml:
+
     let hasSitemap = false;
     try {
       await axios.head(`${new URL(url).origin}/sitemap.xml`);
       hasSitemap = true;
     } catch {}
-    //    Extract groundTruth:
-    const gt = await extractGroundTruth(htmlContent);
-    gt.hasRobotsTxt = hasRobots;
+
+    const gt = extractGroundTruth(htmlContent);
+    gt.hasRobotsTxt = hasRobotsTxt;
     gt.sitemapExists = hasSitemap;
 
-    // 3. Construct a tightly defined prompt using groundTruth
     const prompt = `
 You are an expert SEO assistant. Below is the groundTruth object extracted from the HTML of a webpage. Use ONLY this groundTruth to create JSON with three keys: "ai_superpowers", "ai_opportunities", and "ai_engine_insights".
 groundTruth = ${JSON.stringify(gt)}
@@ -94,7 +64,6 @@ REQUIREMENTS:
 Begin response now:
 `;
 
-    // 4. Call the LLM
     const llmResp = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
@@ -106,20 +75,31 @@ Begin response now:
     const llmText = llmResp.choices[0].message.content.trim();
     const parsed = JSON.parse(llmText);
 
-    // 5. Validate LLM output
-    const superpowers = parsed.ai_superpowers || [];
-    const opportunities = parsed.ai_opportunities || [];
-    const validationErrors = validateLLMClaims(gt, superpowers, opportunities);
+    const aiSuperpowers   = parsed.ai_superpowers || [];
+    const aiOpportunities = parsed.ai_opportunities || [];
+    const validationErrors = [];
 
-    // 6. If any validationErrors exist, optionally filter or tag them
+    if (aiSuperpowers.some(sp => sp.title === "Secure HTTPS") && !gt.usesHTTPS) {
+      validationErrors.push("Claimed Secure HTTPS, but page did not load over HTTPS.");
+    }
+    if (aiOpportunities.some(op => op.title === "Missing Meta Description") && gt.hasMetaDescription) {
+      validationErrors.push("Claimed Missing Meta Description, but meta description exists.");
+    }
+    aiSuperpowers.forEach(sp => {
+      if (/h1/i.test(sp.title) && !gt.hasH1) {
+        validationErrors.push(`Claimed H1 exists (“${sp.title}”), but groundTruth.hasH1 is false.`);
+      }
+    });
+    aiOpportunities.forEach(op => {
+      if (/no structured data/i.test(op.title) && gt.hasJSONLD) {
+        validationErrors.push("Claimed No Structured Data, but JSON-LD is present.");
+      }
+    });
+
     if (validationErrors.length) {
-      // For now, just log and remove any conflicting items
       console.warn('🔍 Hallucination errors detected:', validationErrors);
-      // Example: filter out any superpower/opportunity that didn’t match groundTruth
-      // (implement filtering logic here based on your preference)
     }
 
-    // 7. Return the (validated) JSON
     return res.json(parsed);
   } catch (err) {
     console.error('Error in /friendly:', err);
@@ -127,7 +107,32 @@ Begin response now:
   }
 });
 
-// … (rest of server.js remains unchanged) …
+app.post('/contact', (req, res) => {
+  console.log('🌟 Contact submission:', req.body);
+  res.json({ success: true });
+});
+
+app.post('/codex-push', async (req, res) => {
+  const { owner, repo, path, commitMessage, prompt } = req.body;
+  if (!owner || !repo || !path || !commitMessage || !prompt) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
+  try {
+    const aiResp = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        { role: 'system', content: 'You are a code assistant.' },
+        { role: 'user', content: prompt }
+      ]
+    });
+    const code = aiResp.choices[0].message.content;
+    await upsertFile({ owner, repo, path, content: code, message: commitMessage });
+    res.json({ success: true, message: 'File created/updated on GitHub.', path });
+  } catch (err) {
+    console.error('Error in /codex-push:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
