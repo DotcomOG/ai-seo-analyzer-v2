@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const thankDiv = document.getElementById('thankYou');
   const rptDiv   = document.getElementById('report');
 
+  // Railway production backend URL:
+  const BACKEND_URL = 'https://ai-seo-analyzer-v2-production.up.railway.app';
+
   if (!/^https?:\/\//i.test(url)) {
     url = 'https://' + url;
   }
@@ -25,9 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
   thankDiv.textContent = `Thank you, ${name}! We’ll reach out soon to schedule an appointment.`;
 
   // Fetch detailed analysis
-  fetch(`/friendly?type=summary&url=${encodeURIComponent(url)}`)
+  fetch(`${BACKEND_URL}/friendly?type=summary&url=${encodeURIComponent(url)}`)
     .then(r => {
-      if (!r.ok) throw new Error(r.statusText);
+      if (!r.ok) throw new Error(`Status ${r.status}: ${r.statusText}`);
       return r.json();
     })
     .then(d => {
