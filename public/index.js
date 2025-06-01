@@ -9,8 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const readiness = document.getElementById('readiness');
   const reportBtn = document.getElementById('reportBtn');
 
-  // Replace this with your actual Railway backend URL:
-  const BACKEND_URL = 'https://ai-seo-analyzer-v2-production.up.railway.app/';
+  // Railway production backend URL:
+  const BACKEND_URL = 'https://ai-seo-analyzer-v2-production.up.railway.app';
 
   // Normalize any input URL by prepending https:// if missing
   function normalize(u) {
