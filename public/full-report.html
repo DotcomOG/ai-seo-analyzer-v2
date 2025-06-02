@@ -11,25 +11,49 @@
       padding: 2rem;
       max-width: 800px;
       margin: auto;
+      background: #fafafa;
+    }
+    h1.page-header {
+      font-size: 1.75rem;
+      margin-bottom: 1rem;
+      color: #333;
     }
     .meta {
       background: #f0f0f0;
       padding: 1rem;
       border-radius: 4px;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
     }
-    h2 {
-      margin-top: 1.5rem;
+    .section {
+      margin-bottom: 2rem;
     }
-    ul {
+    .section h2 {
+      font-size: 1.25rem;
+      color: #444;
+      margin-bottom: 0.5rem;
+    }
+    .section ul {
       margin-left: 1.5rem;
     }
-    label, input, select, button {
+    .section li {
+      margin-bottom: 0.75rem;
+      line-height: 1.5;
+    }
+    .schedule {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #f0f0f0;
+      border-radius: 4px;
+    }
+    .schedule label,
+    .schedule input,
+    .schedule select,
+    .schedule button {
       display: block;
       width: 100%;
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
     }
-    button {
+    .schedule button {
       padding: 0.75rem;
       border: none;
       border-radius: 4px;
@@ -40,22 +64,43 @@
   </style>
 </head>
 <body>
-  <h1>AI SEO Full Report</h1>
-  <div id="meta" class="meta">Loading metadata…</div>
-  <div id="thankYou" style="margin: 1rem 0; padding: 1rem; background: #e0ffe0; border-radius: 4px;"></div>
-  <div id="report">Fetching analysis…</div>
+  <h1 class="page-header">AI SEO Full Report</h1>
 
-  <h2>Schedule a Call</h2>
-  <label for="phoneInput">Phone Number:</label>
-  <input id="phoneInput" type="tel" placeholder="e.g. (555) 123-4567" />
-  <label for="timeSelect">Best Time to Call:</label>
-  <select id="timeSelect">
-    <option>9 AM-12 PM</option>
-    <option>12 PM-3 PM</option>
-    <option>3 PM-6 PM</option>
-    <option>6 PM-9 PM</option>
-  </select>
-  <button id="scheduleBtn">Request Call</button>
+  <div id="meta" class="meta">Loading metadata…</div>
+  <div id="thankYou" style="margin-bottom: 1.5rem; padding: 1rem; background: #e0ffe0; border-radius: 4px;"></div>
+
+  <!-- 5 AI Superpowers section -->
+  <div class="section" id="superpowers">
+    <h2>Top 5 AI Optimized Features</h2>
+    <ul id="superpowerList">Loading…</ul>
+  </div>
+
+  <!-- 10 AI Opportunities section -->
+  <div class="section" id="opportunities">
+    <h2>Top 10 AI Optimization Opportunities</h2>
+    <ul id="opportunityList">Loading…</ul>
+  </div>
+
+  <!-- 4 AI Engine Insights -->
+  <div class="section engine-list" id="engineInsights">
+    <h2>How Your Site Performs on Key AI Search Engines</h2>
+    <ul id="engineInsightsList">Loading…</ul>
+  </div>
+
+  <!-- Schedule a Call -->
+  <div class="schedule">
+    <h2>Schedule a Call</h2>
+    <label for="phoneInput">Phone Number:</label>
+    <input id="phoneInput" type="tel" placeholder="e.g. (555) 123-4567" />
+    <label for="timeSelect">Best Time to Call:</label>
+    <select id="timeSelect">
+      <option>9 AM-12 PM</option>
+      <option>12 PM-3 PM</option>
+      <option>3 PM-6 PM</option>
+      <option>6 PM-9 PM</option>
+    </select>
+    <button id="scheduleBtn">Request Call</button>
+  </div>
 
   <script src="./full-report.js"></script>
 </body>

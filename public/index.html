@@ -11,6 +11,7 @@
       padding: 0;
       height: 100%;
       font-family: sans-serif;
+      background: #fafafa;
     }
     #lightbox {
       position: fixed;
@@ -61,14 +62,28 @@
       max-width: 800px;
       margin: auto;
     }
-    .insight {
-      background: #f4f4f4;
-      padding: 1rem;
-      border-radius: 4px;
+    h1.page-header {
       margin-bottom: 1rem;
+      font-size: 1.75rem;
+      color: #333;
+    }
+    .section {
+      margin-bottom: 2rem;
+    }
+    .section h2 {
+      margin-bottom: 0.5rem;
+      font-size: 1.25rem;
+      color: #444;
+    }
+    .section p {
+      margin: 0.25rem 0;
+      line-height: 1.5;
     }
     .contact-form {
       margin-top: 2rem;
+      padding: 1rem;
+      background: #f0f0f0;
+      border-radius: 4px;
     }
     .contact-form label,
     .contact-form input {
@@ -84,6 +99,12 @@
       color: #fff;
       cursor: pointer;
     }
+    ul {
+      margin-left: 1.5rem;
+    }
+    .engine-list ul {
+      margin-left: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -96,10 +117,29 @@
   </div>
 
   <div id="main">
-    <h1>AI SEO Readiness Summary</h1>
-    <div id="readiness">Loading...</div>
+    <!-- Header: URL tested -->
+    <h1 class="page-header" id="pageHeader">Results for: </h1>
+
+    <!-- Overall Score -->
+    <div class="section" id="scoreSection">
+      <h2>Overall Score</h2>
+      <p id="overallScore">Calculating…</p>
+    </div>
+
+    <!-- ChatGPT & Gemini (2–3 lines each) -->
+    <div class="section" id="engineSections">
+      <!-- Injected by index.js -->
+    </div>
+
+    <!-- Top 4 AI Search Engine Analysis -->
+    <div class="section engine-list" id="topEngines">
+      <h2>Top 4 AI Search Engine Analysis</h2>
+      <ul id="engineList">Loading…</ul>
+    </div>
+
+    <!-- Contact Form, rendered as part of the results page -->
     <div class="contact-form">
-      <p>Want to dig deeper? Fill out the form to get a full report.</p>
+      <p>Want to dig deeper? Fill out the form below to get a full report.</p>
       <label for="nameInput">Name:</label>
       <input id="nameInput" type="text" required />
       <label for="emailInput">Email:</label>

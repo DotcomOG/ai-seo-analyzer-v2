@@ -1,61 +1,79 @@
 // public/full-report.js
-// Generated on 2025-05-27 16:15 PM ET
+// Generated on 2025-05-27 18:15 PM ET
 
 document.addEventListener('DOMContentLoaded', () => {
-  const params   = new URLSearchParams(window.location.search);
-  let url        = params.get('url') || '';
-  const name     = params.get('name') || '';
-  const email    = params.get('email') || '';
-  const company  = params.get('company') || '';
-  const metaDiv  = document.getElementById('meta');
-  const thankDiv = document.getElementById('thankYou');
-  const rptDiv   = document.getElementById('report');
+  const params      = new URLSearchParams(window.location.search);
+  let url           = params.get('url') || '';
+  const name        = params.get('name') || '';
+  const email       = params.get('email') || '';
+  const company     = params.get('company') || '';
+  const metaDiv     = document.getElementById('meta');
+  const thankDiv    = document.getElementById('thankYou');
+  const spList      = document.getElementById('superpowerList');
+  const opList      = document.getElementById('opportunityList');
+  const engList     = document.getElementById('engineInsightsList');
 
-  // Railway production backend URL:
+  // Railway backend URL
   const BACKEND_URL = 'https://ai-seo-analyzer-v2-production.up.railway.app';
 
   if (!/^https?:\/\//i.test(url)) {
     url = 'https://' + url;
   }
 
-  // Render metadata banner
+  // 1. Render metadata banner
   metaDiv.innerHTML = `
     <p><strong>Name:</strong> ${name}</p>
     <p><strong>Email:</strong> ${email}</p>
     <p><strong>Company/Org:</strong> ${company}</p>
-    <p><strong>URL:</strong> <a href="${url}" target="_blank">${url}</a></p>
+    <p><strong>URL Tested:</strong> <a href="${url}" target="_blank">${url}</a></p>
   `;
-  thankDiv.textContent = `Thank you, ${name}! We’ll reach out soon to schedule an appointment.`;
 
-  // Fetch detailed analysis
+  thankDiv.textContent = `Thank you, ${name}! We’ll reach out shortly to schedule your appointment.`;
+
+  // 2. Fetch the detailed analysis
   fetch(`${BACKEND_URL}/friendly?type=summary&url=${encodeURIComponent(url)}`)
-    .then(r => {
-      if (!r.ok) throw new Error(`Status ${r.status}: ${r.statusText}`);
-      return r.json();
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Status ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
     })
-    .then(d => {
-      let html = `<h2>Overall Score: ${d.score ?? 'N/A'}</h2>`;
-      html += '<h2>AI Superpowers</h2><ul>';
-      d.ai_superpowers.forEach(sp => {
-        html += `<li><strong>${sp.title}</strong><p>${sp.explanation}</p></li>`;
+    .then(data => {
+      // 2a. Top 5 AI Superpowers
+      spList.innerHTML = '';
+      data.ai_superpowers.forEach(sp => {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${sp.title}</strong><p>${sp.explanation}</p>`;
+        spList.appendChild(li);
       });
-      html += '</ul><h2>AI Opportunities</h2><ul>';
-      d.ai_opportunities.forEach(op => {
-        html += `<li><strong>${op.title}</strong><p>${op.explanation}</p></li>`;
+
+      // 2b. Top 10 AI Opportunities
+      opList.innerHTML = '';
+      data.ai_opportunities.forEach(op => {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${op.title}</strong><p>${op.explanation}</p>`;
+        opList.appendChild(li);
       });
-      html += '</ul><h2>AI Engine Insights</h2><ul>';
-      Object.entries(d.ai_engine_insights).forEach(([eng, info]) => {
-        html += `<li><strong>${eng} — Score ${info.score}</strong><p>${info.insight}</p></li>`;
+
+      // 2c. Four AI Engine Insights
+      engList.innerHTML = '';
+      ['ChatGPT', 'Gemini', 'MS Copilot', 'Perplexity'].forEach(key => {
+        if (data.ai_engine_insights[key]) {
+          const info = data.ai_engine_insights[key];
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>${key} — Score: ${info.score}</strong><p>${info.insight}</p>`;
+          engList.appendChild(li);
+        }
       });
-      html += '</ul>';
-      rptDiv.innerHTML = html;
     })
     .catch(err => {
-      rptDiv.textContent = `Error loading report: ${err.message || err}`;
+      spList.textContent = `Error loading superpowers: ${err.message}`;
+      opList.textContent = '';
+      engList.textContent = '';
       console.error(err);
     });
 
-  // “Request Call” mailto handler
+  // 3. Schedule-a-call mailto
   document.getElementById('scheduleBtn').addEventListener('click', () => {
     const phone = document.getElementById('phoneInput').value.trim();
     const time  = document.getElementById('timeSelect').value;

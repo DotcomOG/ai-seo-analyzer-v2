@@ -1,5 +1,5 @@
 // server.js
-// Generated on 2025-05-27 16:00 PM ET
+// Generated on 2025-05-27 18:00 PM ET
 require('dotenv').config();
 const express = require('express');
 const cors    = require('cors');
@@ -17,10 +17,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 const PORT = process.env.PORT || 3000;
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// Health check
 app.get('/health', (_req, res) => {
   res.json({ status: 'OK' });
 });
 
+// Route: /friendly?type=summary&url=...
 app.get('/friendly', async (req, res) => {
   const { type, url } = req.query;
   if (type !== 'summary') {
@@ -31,75 +33,84 @@ app.get('/friendly', async (req, res) => {
   }
 
   try {
+    // 1. Fetch page HTML
     const pageResp = await axios.get(url);
     const htmlContent = pageResp.data;
 
+    // 2. Check robots.txt and sitemap.xml
     let hasRobotsTxt = false;
     try {
       await axios.head(`${new URL(url).origin}/robots.txt`);
       hasRobotsTxt = true;
     } catch {}
-
     let hasSitemap = false;
     try {
       await axios.head(`${new URL(url).origin}/sitemap.xml`);
       hasSitemap = true;
     } catch {}
 
+    // 3. Build groundTruth
     const gt = extractGroundTruth(htmlContent);
     gt.hasRobotsTxt = hasRobotsTxt;
     gt.sitemapExists = hasSitemap;
 
+    // 4. Construct a stringent prompt for exactly 5 superpowers, 10 opportunities, and 4 engines
     const prompt = `
-You are an expert SEO assistant. Below is the groundTruth object extracted from the HTML of a webpage. Use ONLY this groundTruth to create JSON with three keys: "ai_superpowers", "ai_opportunities", and "ai_engine_insights".
-groundTruth = ${JSON.stringify(gt)}
+You are an expert AI‐SEO auditor. You receive a groundTruth JSON object extracted from a target page. Use **only** this groundTruth to produce a JSON object with exactly five keys:
 
-REQUIREMENTS:
-1. "ai_superpowers" must list every positive SEO signal in groundTruth (e.g., if usesHTTPS is true, add { "title": "Secure HTTPS", "explanation": "Your site uses HTTPS, which improves trust." }).
-2. "ai_opportunities" must list every missing item (e.g., if hasMetaDescription is false, add { "title": "Missing Meta Description", "explanation": "No meta description found. Add one." }).
-3. "ai_engine_insights" must have two required engines: "ChatGPT" and "Gemini". For each, set "score" (0–10) based on how many groundTruth fields are present (e.g., +2 points each for hasH1, hasMetaDescription, usesHTTPS, hasOpenGraph; max 10). Under "insight", write one‐sentence commentary referencing exactly the groundTruth fields (e.g., "Recognizes your SSL and meta description but detects no structured data.").
-4. DO NOT hallucinate. If groundTruth has a field false, you cannot report it as present. Output must be pure JSON with no extra text.
-5. Return the entire JSON object.
+1. "score": integer 1–10, reflecting how well this page is optimized for AI search.
+2. "ai_superpowers": an array of exactly 5 objects. Each object must have:
+   - "title" (string)
+   - "explanation" (string, 2–3 lines)  
+   These are positive AI‐SEO signals found in groundTruth.
 
-Begin response now:
+3. "ai_opportunities": an array of exactly 10 objects. Each object must have:
+   - "title" (string)
+   - "explanation" (string, 2–3 lines)  
+   These are missing or suboptimal AI‐SEO signals.
+
+4. "ai_engine_insights": an object with exactly four keys: "ChatGPT", "Gemini", "MS Copilot", and "Perplexity". Each key’s value must be an object with:
+   - "score": integer 1–10 (0=very poor, 10=perfect), based on groundTruth
+   - "insight": a 2–3 line explanation of the page’s performance on that engine, describing *impact only.*  
+     Do **not** offer solutions—only state how the lack/presence of signals affects that engine.
+
+Ensure all fields are backed by groundTruth. **Do not hallucinate** or invent signals. Output must be **pure JSON** with these five keys.
+
+Here is the groundTruth:
+\`\`\`json
+${JSON.stringify(gt, null, 2)}
+\`\`\`
+
+Begin your response now:
 `;
 
+    // 5. Call the model
     const llmResp = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
-        { role: 'system', content: 'You are a JSON‐focused SEO assistant.' },
+        { role: 'system', content: 'You are a strict JSON‐only AI‐SEO auditor.' },
         { role: 'user', content: prompt }
       ],
       temperature: 0.2
     });
+
     const llmText = llmResp.choices[0].message.content.trim();
-    const parsed = JSON.parse(llmText);
-
-    const aiSuperpowers   = parsed.ai_superpowers || [];
-    const aiOpportunities = parsed.ai_opportunities || [];
-    const validationErrors = [];
-
-    if (aiSuperpowers.some(sp => sp.title === "Secure HTTPS") && !gt.usesHTTPS) {
-      validationErrors.push("Claimed Secure HTTPS, but page did not load over HTTPS.");
-    }
-    if (aiOpportunities.some(op => op.title === "Missing Meta Description") && gt.hasMetaDescription) {
-      validationErrors.push("Claimed Missing Meta Description, but meta description exists.");
-    }
-    aiSuperpowers.forEach(sp => {
-      if (/h1/i.test(sp.title) && !gt.hasH1) {
-        validationErrors.push(`Claimed H1 exists (“${sp.title}”), but groundTruth.hasH1 is false.`);
-      }
-    });
-    aiOpportunities.forEach(op => {
-      if (/no structured data/i.test(op.title) && gt.hasJSONLD) {
-        validationErrors.push("Claimed No Structured Data, but JSON-LD is present.");
-      }
-    });
-
-    if (validationErrors.length) {
-      console.warn('🔍 Hallucination errors detected:', validationErrors);
+    let parsed;
+    try {
+      parsed = JSON.parse(llmText);
+    } catch (parseErr) {
+      console.error('❌ Failed to parse JSON from LLM:', parseErr, llmText);
+      return res.status(500).json({ error: 'Invalid JSON from AI' });
     }
 
+    // 6. Simple validation: ensure score exists
+    if (typeof parsed.score !== 'number') {
+      console.warn('⚠️ No "score" field or not a number. Returning N/A.');
+      parsed.score = null;
+    }
+    // Optional: you can further validate counts of arrays, etc.
+
+    // 7. Return the JSON
     return res.json(parsed);
   } catch (err) {
     console.error('Error in /friendly:', err);
@@ -107,11 +118,13 @@ Begin response now:
   }
 });
 
+// Contact endpoint (unchanged)
 app.post('/contact', (req, res) => {
   console.log('🌟 Contact submission:', req.body);
   res.json({ success: true });
 });
 
+// Codex → GitHub (unchanged)
 app.post('/codex-push', async (req, res) => {
   const { owner, repo, path, commitMessage, prompt } = req.body;
   if (!owner || !repo || !path || !commitMessage || !prompt) {
