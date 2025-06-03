@@ -1,51 +1,56 @@
-// full-report.js — Last updated: 2025-06-02 18:20 ET
+// full-report.js — Last updated: 2025-06-02 18:50 ET
 
 document.addEventListener('DOMContentLoaded', () => {
   const url = new URLSearchParams(window.location.search).get('url');
+  const resultUrl = document.getElementById('fullResultUrl');
+  const scoreEl = document.getElementById('fullScore');
+  const superpowersList = document.getElementById('fullSuperpowers');
+  const opportunitiesList = document.getElementById('fullOpportunities');
+  const insightsList = document.getElementById('fullInsights');
+  const contactForm = document.getElementById('fullContactForm');
 
   if (!url) {
-    document.getElementById('fullResultUrl').textContent = 'No URL provided.';
+    resultUrl.textContent = 'No URL provided.';
     return;
   }
 
   fetch(`https://ai-seo-backend-final.onrender.com/full?url=${encodeURIComponent(url)}`)
     .then(res => res.json())
     .then(data => {
-      document.getElementById('fullResultUrl').textContent = `Analyzed URL: ${data.url || url}`;
-      document.getElementById('fullScore').textContent = `Overall Score: ${data.score ?? 'N/A'}/100`;
+      console.log('Full report loaded:', data);
+
+      resultUrl.textContent = `Analyzed URL: ${data.url || url}`;
+      scoreEl.textContent = `Overall Score: ${data.score ?? 'N/A'}/100`;
 
       // Superpowers
-      const fullSuperpowers = document.getElementById('fullSuperpowers');
-      fullSuperpowers.innerHTML = '';
+      superpowersList.innerHTML = '';
       (data.superpowers || []).forEach(item => {
         const li = document.createElement('li');
         li.textContent = item;
-        fullSuperpowers.appendChild(li);
+        superpowersList.appendChild(li);
       });
 
       // Opportunities
-      const fullOpportunities = document.getElementById('fullOpportunities');
-      fullOpportunities.innerHTML = '';
+      opportunitiesList.innerHTML = '';
       (data.opportunities || []).forEach(item => {
         const li = document.createElement('li');
         li.textContent = item;
-        fullOpportunities.appendChild(li);
+        opportunitiesList.appendChild(li);
       });
 
-      // AI Insights
-      const fullInsights = document.getElementById('fullInsights');
-      fullInsights.innerHTML = '';
+      // AI Engine Insights
+      insightsList.innerHTML = '';
       (data.insights || []).forEach(item => {
         const li = document.createElement('li');
         li.textContent = item;
-        fullInsights.appendChild(li);
+        insightsList.appendChild(li);
       });
 
-      // Reveal contact form
-      document.getElementById('fullContactForm').classList.remove('hidden');
+      // Show contact form at the end
+      contactForm.classList.remove('hidden');
     })
     .catch(err => {
       console.error('Failed to load full report:', err);
-      document.getElementById('fullResultUrl').textContent = 'Error fetching report. Please try again.';
+      resultUrl.textContent = 'Error fetching report. Please try again.';
     });
 });
