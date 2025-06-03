@@ -1,4 +1,4 @@
-mport axios from 'axios';
+import axios from 'axios';
 import * as cheerio from 'cheerio';
 import OpenAI from 'openai';
 
