@@ -1,126 +1,76 @@
-// public/index.js
-// Generated on 2025-05-27 18:05 PM ET
+<!-- index.html — Last updated: 2025-06-02 18:15 ET -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SnipeRank – AI SEO Analyzer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-black text-white font-sans">
 
-document.addEventListener('DOMContentLoaded', () => {
-  const lightbox    = document.getElementById('lightbox');
-  const main        = document.getElementById('main');
-  const urlInput    = document.getElementById('urlInput');
-  const goBtn       = document.getElementById('goBtn');
-  const pageHeader  = document.getElementById('pageHeader');
-  const scoreEl     = document.getElementById('overallScore');
-  const engineDiv   = document.getElementById('engineSections');
-  const topEngines  = document.getElementById('engineList');
-  const reportBtn   = document.getElementById('reportBtn');
+  <!-- Header -->
+  <header class="text-center py-8">
+    <h1 class="text-4xl font-bold">SnipeRank: AI SEO Analyzer</h1>
+  </header>
 
-  // Railway backend URL
-  const BACKEND_URL = 'https://ai-seo-analyzer-v2-production.up.railway.app';
+  <!-- Lightbox URL Entry (Initially visible) -->
+  <div id="urlInputModal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
+    <div class="bg-white text-black rounded-2xl p-6 w-full max-w-md shadow-xl">
+      <h2 class="text-xl font-semibold mb-4 text-center">Enter a URL to Analyze</h2>
+      <input id="urlInput" type="text" placeholder="https://example.com" class="w-full p-3 rounded border border-gray-400 mb-4" />
+      <button id="submitBtn" class="w-full bg-black text-white py-2 px-4 rounded hover:bg-gray-900">Analyze</button>
+    </div>
+  </div>
 
-  // Normalize input URL (prepend https:// if missing)
-  function normalizeUrl(u) {
-    u = u.trim();
-    if (!/^https?:\/\//i.test(u)) {
-      u = 'https://' + u;
-    }
-    return u;
-  }
+  <!-- Loading Message -->
+  <div id="loadingMessage" class="text-center mt-10 text-lg">
+    SnipeRank is analyzing. It may take up to a minute.
+  </div>
 
-  // Render the fetched data
-  function renderData(url, data) {
-    // 1. Header (URL tested)
-    pageHeader.textContent = `Results for: ${url}`;
+  <!-- Result Container (Hidden initially) -->
+  <div id="resultContainer" class="hidden px-6 py-8 max-w-4xl mx-auto space-y-6">
 
-    // 2. Overall Score
-    if (data.score === null || data.score === undefined) {
-      scoreEl.textContent = 'N/A';
-    } else {
-      scoreEl.textContent = data.score;
-    }
+    <!-- URL -->
+    <div id="resultUrl" class="text-xl font-semibold text-center"></div>
 
-    // 3. ChatGPT & Gemini sections
-    engineDiv.innerHTML = ''; // Clear previous
-    ['ChatGPT', 'Gemini'].forEach(key => {
-      if (data.ai_engine_insights[key]) {
-        const info = data.ai_engine_insights[key];
-        const card = document.createElement('div');
-        card.className = 'insight';
-        card.innerHTML = `
-          <h3>${key} Readiness</h3>
-          <p><strong>Score:</strong> ${info.score}</p>
-          <p>${info.insight}</p>
-        `;
-        engineDiv.appendChild(card);
-      }
-    });
+    <!-- Overall Score -->
+    <div id="scoreSection" class="text-center">
+      <p class="text-2xl font-bold">Overall Score: <span id="scoreValue"></span>/100</p>
+    </div>
 
-    // 4. Top 4 AI Search Engine Analysis (four engines exactly)
-    topEngines.innerHTML = '';
-    ['ChatGPT', 'Gemini', 'MS Copilot', 'Perplexity'].forEach(key => {
-      if (data.ai_engine_insights[key]) {
-        const info = data.ai_engine_insights[key];
-        const li = document.createElement('li');
-        li.innerHTML = `<strong>${key} — Score: ${info.score}</strong><p>${info.insight}</p>`;
-        topEngines.appendChild(li);
-      }
-    });
-  }
+    <!-- AI Superpowers -->
+    <div>
+      <h2 class="text-xl font-bold mt-8 mb-2">5 AI Superpowers</h2>
+      <ul id="superpowersList" class="list-disc list-inside space-y-2"></ul>
+    </div>
 
-  // Fetch data from backend
-  function fetchReady(url) {
-    scoreEl.textContent = 'Loading…';
-    engineDiv.innerHTML = '';
-    topEngines.textContent = 'Loading…';
+    <!-- AI Opportunities -->
+    <div>
+      <h2 class="text-xl font-bold mt-8 mb-2">10 AI SEO Opportunities</h2>
+      <ul id="opportunitiesList" class="list-disc list-inside space-y-2"></ul>
+    </div>
 
-    fetch(`${BACKEND_URL}/friendly?type=summary&url=${encodeURIComponent(url)}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Status ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        renderData(url, data);
-      })
-      .catch(err => {
-        scoreEl.textContent = `Error: ${err.message}`;
-        engineDiv.textContent = '';
-        topEngines.textContent = '';
-        console.error(err);
-      });
-  }
+    <!-- AI Engine Insights -->
+    <div>
+      <h2 class="text-xl font-bold mt-8 mb-2">AI Engine Insights</h2>
+      <ul id="aiInsightsList" class="list-disc list-inside space-y-2"></ul>
+    </div>
 
-  // On load: if URL query param present, hide lightbox & show results
-  const params = new URLSearchParams(window.location.search);
-  let url = params.get('url') || '';
-  if (url) {
-    url = normalizeUrl(url);
-    lightbox.style.display = 'none';
-    main.style.display = 'block';
-    fetchReady(url);
-  }
+    <!-- Contact Form (Initially Hidden) -->
+    <div id="contactForm" class="hidden mt-12 border-t border-gray-700 pt-8">
+      <h3 class="text-2xl font-semibold mb-4">Request a Free AI SEO Consultation</h3>
+      <form class="space-y-4">
+        <input type="text" placeholder="Name" class="w-full p-2 rounded text-black" />
+        <input type="email" placeholder="Email" class="w-full p-2 rounded text-black" />
+        <input type="tel" placeholder="Phone (optional)" class="w-full p-2 rounded text-black" />
+        <textarea placeholder="Your message" class="w-full p-2 rounded text-black h-32"></textarea>
+        <button type="submit" class="bg-white text-black px-4 py-2 rounded hover:bg-gray-300">Send</button>
+      </form>
+    </div>
 
-  // Lightbox submission
-  goBtn.addEventListener('click', () => {
-    const input = normalizeUrl(urlInput.value);
-    if (!input) return;
-    window.location.href = `index.html?url=${encodeURIComponent(input)}`;
-  });
-  urlInput.addEventListener('keypress', e => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      goBtn.click();
-    }
-  });
+  </div>
 
-  // Contact form → redirect to full-report
-  reportBtn.addEventListener('click', () => {
-    const name    = document.getElementById('nameInput').value.trim();
-    const email   = document.getElementById('emailInput').value.trim();
-    const company = document.getElementById('companyInput').value.trim();
-    if (!name || !email || !company) {
-      alert('Please fill all fields.');
-      return;
-    }
-    const qs = new URLSearchParams({ url, name, email, company });
-    window.location.href = `full-report.html?${qs.toString()}`;
-  });
-});
+  <script src="index.js"></script>
+</body>
+</html>
