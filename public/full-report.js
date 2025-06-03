@@ -1,86 +1,51 @@
-// public/full-report.js
-// Generated on 2025-05-27 18:15 PM ET
+// full-report.js — Last updated: 2025-06-02 18:20 ET
 
 document.addEventListener('DOMContentLoaded', () => {
-  const params      = new URLSearchParams(window.location.search);
-  let url           = params.get('url') || '';
-  const name        = params.get('name') || '';
-  const email       = params.get('email') || '';
-  const company     = params.get('company') || '';
-  const metaDiv     = document.getElementById('meta');
-  const thankDiv    = document.getElementById('thankYou');
-  const spList      = document.getElementById('superpowerList');
-  const opList      = document.getElementById('opportunityList');
-  const engList     = document.getElementById('engineInsightsList');
+  const url = new URLSearchParams(window.location.search).get('url');
 
-  // Railway backend URL
-  const BACKEND_URL = 'https://ai-seo-analyzer-v2-production.up.railway.app';
-
-  if (!/^https?:\/\//i.test(url)) {
-    url = 'https://' + url;
+  if (!url) {
+    document.getElementById('fullResultUrl').textContent = 'No URL provided.';
+    return;
   }
 
-  // 1. Render metadata banner
-  metaDiv.innerHTML = `
-    <p><strong>Name:</strong> ${name}</p>
-    <p><strong>Email:</strong> ${email}</p>
-    <p><strong>Company/Org:</strong> ${company}</p>
-    <p><strong>URL Tested:</strong> <a href="${url}" target="_blank">${url}</a></p>
-  `;
-
-  thankDiv.textContent = `Thank you, ${name}! We’ll reach out shortly to schedule your appointment.`;
-
-  // 2. Fetch the detailed analysis
-  fetch(`${BACKEND_URL}/friendly?type=summary&url=${encodeURIComponent(url)}`)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Status ${response.status}: ${response.statusText}`);
-      }
-      return response.json();
-    })
+  fetch(`https://ai-seo-backend-final.onrender.com/full?url=${encodeURIComponent(url)}`)
+    .then(res => res.json())
     .then(data => {
-      // 2a. Top 5 AI Superpowers
-      spList.innerHTML = '';
-      data.ai_superpowers.forEach(sp => {
+      document.getElementById('fullResultUrl').textContent = `Analyzed URL: ${data.url || url}`;
+      document.getElementById('fullScore').textContent = `Overall Score: ${data.score ?? 'N/A'}/100`;
+
+      // Superpowers
+      const fullSuperpowers = document.getElementById('fullSuperpowers');
+      fullSuperpowers.innerHTML = '';
+      (data.superpowers || []).forEach(item => {
         const li = document.createElement('li');
-        li.innerHTML = `<strong>${sp.title}</strong><p>${sp.explanation}</p>`;
-        spList.appendChild(li);
+        li.textContent = item;
+        fullSuperpowers.appendChild(li);
       });
 
-      // 2b. Top 10 AI Opportunities
-      opList.innerHTML = '';
-      data.ai_opportunities.forEach(op => {
+      // Opportunities
+      const fullOpportunities = document.getElementById('fullOpportunities');
+      fullOpportunities.innerHTML = '';
+      (data.opportunities || []).forEach(item => {
         const li = document.createElement('li');
-        li.innerHTML = `<strong>${op.title}</strong><p>${op.explanation}</p>`;
-        opList.appendChild(li);
+        li.textContent = item;
+        fullOpportunities.appendChild(li);
       });
 
-      // 2c. Four AI Engine Insights
-      engList.innerHTML = '';
-      ['ChatGPT', 'Gemini', 'MS Copilot', 'Perplexity'].forEach(key => {
-        if (data.ai_engine_insights[key]) {
-          const info = data.ai_engine_insights[key];
-          const li = document.createElement('li');
-          li.innerHTML = `<strong>${key} — Score: ${info.score}</strong><p>${info.insight}</p>`;
-          engList.appendChild(li);
-        }
+      // AI Insights
+      const fullInsights = document.getElementById('fullInsights');
+      fullInsights.innerHTML = '';
+      (data.insights || []).forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        fullInsights.appendChild(li);
       });
+
+      // Reveal contact form
+      document.getElementById('fullContactForm').classList.remove('hidden');
     })
     .catch(err => {
-      spList.textContent = `Error loading superpowers: ${err.message}`;
-      opList.textContent = '';
-      engList.textContent = '';
-      console.error(err);
+      console.error('Failed to load full report:', err);
+      document.getElementById('fullResultUrl').textContent = 'Error fetching report. Please try again.';
     });
-
-  // 3. Schedule-a-call mailto
-  document.getElementById('scheduleBtn').addEventListener('click', () => {
-    const phone = document.getElementById('phoneInput').value.trim();
-    const time  = document.getElementById('timeSelect').value;
-    const subject = encodeURIComponent(`Call Request from ${name}`);
-    const body    = encodeURIComponent(
-      `Name: ${name}\nEmail: ${email}\nCompany: ${company}\nPhone: ${phone}\nBest Time: ${time}\nURL: ${url}`
-    );
-    window.location.href = `mailto:you@yourdomain.com?subject=${subject}&body=${body}`;
-  });
 });
