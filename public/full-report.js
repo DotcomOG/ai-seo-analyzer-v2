@@ -1,4 +1,4 @@
-// full-report.js — Last updated: 2025-06-02 18:50 ET
+// full-report.js — Last updated: 2025-06-02 19:25 ET
 
 document.addEventListener('DOMContentLoaded', () => {
   const url = new URLSearchParams(window.location.search).get('url');
@@ -14,15 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  fetch(`https://ai-seo-backend-final.onrender.com/full?url=${encodeURIComponent(url)}`)
+  fetch(`/api/full?url=${encodeURIComponent(url)}`)
     .then(res => res.json())
     .then(data => {
-      console.log('Full report loaded:', data);
-
       resultUrl.textContent = `Analyzed URL: ${data.url || url}`;
       scoreEl.textContent = `Overall Score: ${data.score ?? 'N/A'}/100`;
 
-      // Superpowers
       superpowersList.innerHTML = '';
       (data.superpowers || []).forEach(item => {
         const li = document.createElement('li');
@@ -30,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
         superpowersList.appendChild(li);
       });
 
-      // Opportunities
       opportunitiesList.innerHTML = '';
       (data.opportunities || []).forEach(item => {
         const li = document.createElement('li');
@@ -38,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
         opportunitiesList.appendChild(li);
       });
 
-      // AI Engine Insights
       insightsList.innerHTML = '';
       (data.insights || []).forEach(item => {
         const li = document.createElement('li');
@@ -46,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
         insightsList.appendChild(li);
       });
 
-      // Show contact form at the end
       contactForm.classList.remove('hidden');
     })
     .catch(err => {
