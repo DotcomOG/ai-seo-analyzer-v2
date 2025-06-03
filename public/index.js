@@ -1,4 +1,4 @@
-// index.js — Last updated: 2025-06-02 18:20 ET
+// index.js — Last updated: 2025-06-02 18:50 ET
 
 document.addEventListener('DOMContentLoaded', () => {
   const modal = document.getElementById('urlInputModal');
@@ -10,16 +10,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   submitBtn.addEventListener('click', handleAnalyze);
   urlInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleAnalyze();
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAnalyze();
+    }
   });
 
   function handleAnalyze() {
     const url = urlInput.value.trim();
-    if (!url) return alert('Please enter a valid URL');
+    if (!url) return alert('Please enter a valid URL.');
 
+    // Hide modal and update loading message
     modal.classList.add('hidden');
     loadingMessage.textContent = 'SnipeRank is analyzing. It may take up to a minute.';
 
+    // Fetch report from backend
     fetch(`https://ai-seo-backend-final.onrender.com/friendly?url=${encodeURIComponent(url)}`)
       .then(res => res.json())
       .then(data => {
@@ -36,10 +41,13 @@ document.addEventListener('DOMContentLoaded', () => {
     loadingMessage.classList.add('hidden');
     resultContainer.classList.remove('hidden');
 
+    // Display analyzed URL
     document.getElementById('resultUrl').textContent = `Analyzed URL: ${data.url || 'N/A'}`;
+
+    // Display score
     document.getElementById('scoreValue').textContent = data.score ?? 'N/A';
 
-    // Superpowers
+    // Render Superpowers
     const superpowersList = document.getElementById('superpowersList');
     superpowersList.innerHTML = '';
     (data.superpowers || []).forEach(item => {
@@ -48,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
       superpowersList.appendChild(li);
     });
 
-    // Opportunities
+    // Render Opportunities
     const opportunitiesList = document.getElementById('opportunitiesList');
     opportunitiesList.innerHTML = '';
     (data.opportunities || []).forEach(item => {
@@ -57,16 +65,16 @@ document.addEventListener('DOMContentLoaded', () => {
       opportunitiesList.appendChild(li);
     });
 
-    // AI Engine Insights
-    const insightsList = document.getElementById('aiInsightsList');
-    insightsList.innerHTML = '';
+    // Render AI Engine Insights
+    const aiInsightsList = document.getElementById('aiInsightsList');
+    aiInsightsList.innerHTML = '';
     (data.insights || []).forEach(item => {
       const li = document.createElement('li');
       li.textContent = item;
-      insightsList.appendChild(li);
+      aiInsightsList.appendChild(li);
     });
 
-    // Show contact form now that everything loaded
+    // Show the contact form now that report is rendered
     contactForm.classList.remove('hidden');
   }
 });
