@@ -1,76 +1,72 @@
-<!-- index.html — Last updated: 2025-06-02 18:15 ET -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SnipeRank – AI SEO Analyzer</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body class="bg-black text-white font-sans">
+// index.js — Last updated: 2025-06-02 18:20 ET
 
-  <!-- Header -->
-  <header class="text-center py-8">
-    <h1 class="text-4xl font-bold">SnipeRank: AI SEO Analyzer</h1>
-  </header>
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('urlInputModal');
+  const urlInput = document.getElementById('urlInput');
+  const submitBtn = document.getElementById('submitBtn');
+  const loadingMessage = document.getElementById('loadingMessage');
+  const resultContainer = document.getElementById('resultContainer');
+  const contactForm = document.getElementById('contactForm');
 
-  <!-- Lightbox URL Entry (Initially visible) -->
-  <div id="urlInputModal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
-    <div class="bg-white text-black rounded-2xl p-6 w-full max-w-md shadow-xl">
-      <h2 class="text-xl font-semibold mb-4 text-center">Enter a URL to Analyze</h2>
-      <input id="urlInput" type="text" placeholder="https://example.com" class="w-full p-3 rounded border border-gray-400 mb-4" />
-      <button id="submitBtn" class="w-full bg-black text-white py-2 px-4 rounded hover:bg-gray-900">Analyze</button>
-    </div>
-  </div>
+  submitBtn.addEventListener('click', handleAnalyze);
+  urlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleAnalyze();
+  });
 
-  <!-- Loading Message -->
-  <div id="loadingMessage" class="text-center mt-10 text-lg">
-    SnipeRank is analyzing. It may take up to a minute.
-  </div>
+  function handleAnalyze() {
+    const url = urlInput.value.trim();
+    if (!url) return alert('Please enter a valid URL');
 
-  <!-- Result Container (Hidden initially) -->
-  <div id="resultContainer" class="hidden px-6 py-8 max-w-4xl mx-auto space-y-6">
+    modal.classList.add('hidden');
+    loadingMessage.textContent = 'SnipeRank is analyzing. It may take up to a minute.';
 
-    <!-- URL -->
-    <div id="resultUrl" class="text-xl font-semibold text-center"></div>
+    fetch(`https://ai-seo-backend-final.onrender.com/friendly?url=${encodeURIComponent(url)}`)
+      .then(res => res.json())
+      .then(data => {
+        console.log('Analysis result:', data);
+        renderReport(data);
+      })
+      .catch(err => {
+        console.error('Error fetching analysis:', err);
+        loadingMessage.textContent = 'Something went wrong. Please try again.';
+      });
+  }
 
-    <!-- Overall Score -->
-    <div id="scoreSection" class="text-center">
-      <p class="text-2xl font-bold">Overall Score: <span id="scoreValue"></span>/100</p>
-    </div>
+  function renderReport(data) {
+    loadingMessage.classList.add('hidden');
+    resultContainer.classList.remove('hidden');
 
-    <!-- AI Superpowers -->
-    <div>
-      <h2 class="text-xl font-bold mt-8 mb-2">5 AI Superpowers</h2>
-      <ul id="superpowersList" class="list-disc list-inside space-y-2"></ul>
-    </div>
+    document.getElementById('resultUrl').textContent = `Analyzed URL: ${data.url || 'N/A'}`;
+    document.getElementById('scoreValue').textContent = data.score ?? 'N/A';
 
-    <!-- AI Opportunities -->
-    <div>
-      <h2 class="text-xl font-bold mt-8 mb-2">10 AI SEO Opportunities</h2>
-      <ul id="opportunitiesList" class="list-disc list-inside space-y-2"></ul>
-    </div>
+    // Superpowers
+    const superpowersList = document.getElementById('superpowersList');
+    superpowersList.innerHTML = '';
+    (data.superpowers || []).forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      superpowersList.appendChild(li);
+    });
 
-    <!-- AI Engine Insights -->
-    <div>
-      <h2 class="text-xl font-bold mt-8 mb-2">AI Engine Insights</h2>
-      <ul id="aiInsightsList" class="list-disc list-inside space-y-2"></ul>
-    </div>
+    // Opportunities
+    const opportunitiesList = document.getElementById('opportunitiesList');
+    opportunitiesList.innerHTML = '';
+    (data.opportunities || []).forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      opportunitiesList.appendChild(li);
+    });
 
-    <!-- Contact Form (Initially Hidden) -->
-    <div id="contactForm" class="hidden mt-12 border-t border-gray-700 pt-8">
-      <h3 class="text-2xl font-semibold mb-4">Request a Free AI SEO Consultation</h3>
-      <form class="space-y-4">
-        <input type="text" placeholder="Name" class="w-full p-2 rounded text-black" />
-        <input type="email" placeholder="Email" class="w-full p-2 rounded text-black" />
-        <input type="tel" placeholder="Phone (optional)" class="w-full p-2 rounded text-black" />
-        <textarea placeholder="Your message" class="w-full p-2 rounded text-black h-32"></textarea>
-        <button type="submit" class="bg-white text-black px-4 py-2 rounded hover:bg-gray-300">Send</button>
-      </form>
-    </div>
+    // AI Engine Insights
+    const insightsList = document.getElementById('aiInsightsList');
+    insightsList.innerHTML = '';
+    (data.insights || []).forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      insightsList.appendChild(li);
+    });
 
-  </div>
-
-  <script src="index.js"></script>
-</body>
-</html>
+    // Show contact form now that everything loaded
+    contactForm.classList.remove('hidden');
+  }
+});
