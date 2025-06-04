@@ -14,7 +14,13 @@ app.use(express.json());
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-app.use(express.static(path.join(__dirname, 'public')));
+const publicDir = path.join(__dirname, 'public');
+app.use(express.static(publicDir));
+
+// Serve /full-report with query parameters without returning 404
+app.get('/full-report', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'full-report.html'));
+});
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'OK' });
